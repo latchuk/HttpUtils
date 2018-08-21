@@ -1,10 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace HttpUtils
 {
@@ -18,22 +15,64 @@ namespace HttpUtils
             DELETE,
         }
 
+        // Get
+
+        public static T Get<T>(string url)
+        {
+            return Request<T>(RequestType.GET, url, null, null, null);
+        }
+
+        public static T Get<T>(string url, JsonSerializerSettings jsonSerializerSettings)
+        {
+            return Request<T>(RequestType.GET, url, null, jsonSerializerSettings, null);
+        }
+
+        public static T Get<T>(string url, JsonSerializerSettings jsonSerializerSettings, TimeSpan timeout)
+        {
+            return Request<T>(RequestType.GET, url, null, jsonSerializerSettings, timeout);
+        }
+
+
+        // Requests
+
+        public static T Request<T>(RequestType requestType, string url)
+        {
+            return Request<T>(requestType, url, null, null, null);
+        }
+
+        public static T Request<T>(RequestType requestType, string url, object content)
+        {
+            return Request<T>(requestType, url, content, null, null);
+        }
+
         public static T Request<T>(RequestType requestType, string url, object content, JsonSerializerSettings jsonSerializerSettings)
+        {
+            return Request<T>(requestType, url, content, jsonSerializerSettings, null);
+        }
+
+        public static T Request<T>(RequestType requestType, string url, object content, JsonSerializerSettings jsonSerializerSettings, TimeSpan? timeout)
         {
             if ((requestType == RequestType.GET || requestType == RequestType.DELETE) && content != null)
                 throw new Exception("The request types GET and DELETE doesn't allow content. To send a content uses the request types POST or PUT");
 
             using (HttpClient httpClient = new HttpClient())
             {
-                httpClient.Timeout = TimeSpan.FromSeconds(60);
+                if (timeout != null)
+                    httpClient.Timeout = timeout.Value;
 
                 HttpResponseMessage response = null;
                 StringContent httpContent = null;
 
                 if (content != null)
                 {
-                    var conteudoJson = JsonConvert.SerializeObject(content, Formatting.Indented, jsonSerializerSettings);
-                    httpContent = new StringContent(conteudoJson, Encoding.UTF8, "application/json");
+                    string contentJson;
+
+                    if (jsonSerializerSettings == null)
+                        contentJson = JsonConvert.SerializeObject(content, Formatting.Indented);
+                    else
+                        contentJson = JsonConvert.SerializeObject(content, Formatting.Indented, jsonSerializerSettings);
+
+                    httpContent = new StringContent(contentJson, Encoding.UTF8, "application/json");
                 }
 
                 switch (requestType)
@@ -83,7 +122,6 @@ namespace HttpUtils
                 }
 
             }
-
         }
     }
 }
