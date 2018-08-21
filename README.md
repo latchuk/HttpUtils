@@ -1,6 +1,6 @@
 # HttpUtils
 An utility class to all HTTP request types of CRUD (Create, Read, Update and Delete), including sync and async methods to use.
 
-Languages implemented:
-
 .NET
+
+... and more comming
